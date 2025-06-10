@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mongolian Grassland Terrain Generator - Development Journal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #2d5016 0%, #5c8a3a 50%, #8fbc8f 100%);
+            min-height: 100vh;
+            color: #2d3436;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 3px solid #d4af37;
+        }
+
+        .header h1 {
+            color: #b8860b;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header .subtitle {
+            color: #8b4513;
+            font-size: 1.2em;
+            font-style: italic;
+        }
+
+        .timeline {
+            position: relative;
+            margin: 40px 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            background: linear-gradient(180deg, #d4af37, #b8860b, #cd853f);
+            transform: translateX(-50%);
+            border-radius: 3px;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin: 60px 0;
+            opacity: 0;
+            animation: fadeInUp 1s forwards;
+        }
+
+        .timeline-item:nth-child(odd) {
+            text-align: right;
+            animation-delay: 0.2s;
+        }
+
+        .timeline-item:nth-child(even) {
+            text-align: left;
+            animation-delay: 0.4s;
+        }
+
+        .timeline-content {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            width: 45%;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            border: 2px solid #ddd;
+            position: relative;
+        }
+
+        .timeline-item:nth-child(odd) .timeline-content {
+            margin-right: 55%;
+        }
+
+        .timeline-item:nth-child(even) .timeline-content {
+            margin-left: 55%;
+        }
+
+        .timeline-content::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            width: 0;
+            height: 0;
+            border: 15px solid transparent;
+        }
+
+        .timeline-item:nth-child(odd) .timeline-content::before {
+            right: -30px;
+            border-left-color: #ddd;
+        }
+
+        .timeline-item:nth-child(even) .timeline-content::before {
+            left: -30px;
+            border-right-color: #ddd;
+        }
+
+        .timeline-date {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #d4af37;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .milestone {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52) !important;
+            color: white !important;
+            border: 3px solid #ff4757 !important;
+        }
+
+        .arduino-phase {
+            background: linear-gradient(135deg, #74b9ff, #0984e3) !important;
+            color: white !important;
+            border: 3px solid #0984e3 !important;
+        }
+
+        .cultural-phase {
+            background: linear-gradient(135deg, #fd79a8, #e84393) !important;
+            color: white !important;
+            border: 3px solid #e84393 !important;
+        }
+
+        .completion-phase {
+            background: linear-gradient(135deg, #00b894, #00a085) !important;
+            color: white !important;
+            border: 3px solid #00a085 !important;
+        }
+
+        .timeline-content h3 {
+            color: #2d3436;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+
+        .timeline-content p {
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .code-snippet {
+            background: #2d3436;
+            color: #00ff41;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            border-left: 4px solid #00ff41;
+        }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .tech-badge {
+            background: #636e72;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+        }
+
+        .arduino-badge {
+            background: #00a8cc;
+        }
+
+        .p5js-badge {
+            background: #e17055;
+        }
+
+        .mongolian-badge {
+            background: #d63031;
+        }
+
+        .achievement {
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px dashed #ffd700;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .achievement::before {
+            content: '🏆 ';
+            font-size: 1.2em;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border: 2px solid #ddd;
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #d4af37;
+        }
+
+        .stat-label {
+            color: #636e72;
+            margin-top: 5px;
+        }
+
+        .mongolian-pattern {
+            height: 6px;
+            background: repeating-linear-gradient(
+                90deg,
+                #d4af37 0px,
+                #d4af37 10px,
+                #b8860b 10px,
+                #b8860b 20px
+            );
+            margin: 30px 0;
+        }
+
+        @media (max-width: 768px) {
+            .timeline-content {
+                width: 90%;
+                margin: 0 auto !important;
+            }
+            
+            .timeline-item {
+                text-align: center !important;
+            }
+            
+            .timeline-content::before {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏔️ Mongolian Grassland Terrain Generator</h1>
+            <div class="subtitle">Development Journey: From Arduino Sensors to Keyboard Interaction</div>
+            <div class="mongolian-pattern"></div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number">151</div>
+                <div class="stat-label">Development Days</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">7964</div>
+                <div class="stat-label">Lines of Code</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">12</div>
+                <div class="stat-label">Key Features</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">3</div>
+                <div class="stat-label">Tech Stack</div>
+            </div>
+        </div>
+
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-date arduino-phase">Dec 1, 2024</div>
+                <div class="timeline-content">
+                    <h3>🚀 Project Launch - Arduino Integration</h3>
+                    <p>Started developing the Mongolian Grassland Terrain Generator with Arduino soil moisture sensor as the primary interaction method.</p>
+                    <div class="code-snippet">// Arduino Integration Code
+let moistureLevel = readMoistureFromArduino();
+if (moistureLevel < 30) {
+    startEmergencyMode(); // Start emergency when dry
+}
+if (moistureLevel > 80) {
+    startFountainChallenge(); // Start fountain challenge when moist
+}</div>
+                    <div class="tech-stack">
+                        <span class="tech-badge arduino-badge">Arduino Uno</span>
+                        <span class="tech-badge">Soil Moisture Sensor</span>
+                        <span class="tech-badge p5js-badge">p5.js WebGL</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-date arduino-phase">Dec 15, 2024</div>
+                <div class="timeline-content">
+                    <h3>🌊 Basic Terrain System</h3>
+                    <p>Completed 3D terrain generation algorithm, implementing mountains, rivers, bridges and other basic terrain elements.</p>
+                    <div class="achievement">
+                        Implemented dynamic terrain generation and pumpkin character control system
+                    </div>
+                    <div class="tech-stack">
+                        <span class="tech-badge p5js-badge">Perlin Noise</span>
+                        <span class="tech-badge">3D Rendering</span>
+                        <span class="tech-badge">Collision Detection</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-date arduino-phase">Jan 8, 2025</div>
+                <div class="timeline-content">
+                    <h3>🐑 Animal Ecosystem</h3>
+                    <p>Added animal AI systems for sheep, rabbits, cows, and dogs, implementing natural herd behaviors.</p>
+                    <div class="code-snippet">// Animal AI Behavior
+function updateSheepBehavior() {
+    for (let sheep of sheepList) {
+        sheep.wanderAngle += random(-0.3, 0.3);
+        sheep.gridX += cos(sheep.wanderAngle) * sheep.speed;
+        sheep.gridY += sin(sheep.wanderAngle) * sheep.speed;
+    }
+}</div>
+                    <div class="tech-stack">
+                        <span class="tech-badge">AI Behavior Tree</span>
+                        <span class="tech-badge">Group Animation</span>
+                        <span class="tech-badge arduino-badge">Moisture Sensor Interaction</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-date arduino-phase">Feb 14, 2025</div>
+                <div class="timeline-content">
+                    <h3>🏮 Lighting & Fountain System</h3>
+                    <p>Integrated street lighting system and dynamic fountains, with Arduino moisture values controlling fountain activation.</p>
+                    <div class="achievement">
+                        Perfect Arduino moisture sensor integration, achieving natural interaction experience
+                    </div>
+                    <div class="tech-stack">
+                        <span class="tech-badge">Particle System</span>
+                        <span class="tech-badge">Dynamic Lighting</span>
+                        <span class="tech-badge arduino-badge">Sensor Mapping</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-date arduino-phase">Feb 28, 2025</div>
+                <div class="timeline-content">
+                    <h3>🚪 Interactive House Door</h3>
+                    <p>Added interactive side door functionality to the wooden house, E key to open/close door, enhancing user experience.</p>
+                    <div class="code-snippet">// Door interaction system
+if (distanceToDoor < 30 && heightDifference < 20) {
+    houseDoor.canInteract = true;
+    // Display interaction prompt
+    text("Press E to interact", doorX, doorY);
+}</div>
+                    <div class="achievement">
+                        Enhanced scene interactivity and realism
+                    </div>
+                    <div class="tech-stack">
+                        <span class="tech-badge">3D Door Animation</span>
+                        <span class="tech-badge">Distance Detection</span>
+                        <span class="tech-badge">User Prompts</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-date cultural-phase">Mar 5, 2025</div>
+                <div class="timeline-content cultural-phase">
+                    <h3>🎨 Mongolian Cultural Decorations</h3>
+                    <p>Started adding traditional Mongolian decorative elements, including traditional patterns on fences and walls.</p>
+                    <div class="code-snippet">// Mongolian Decorative Patterns
+if (patternType === 0) {
+    // Traditional cloud pattern
+    for (let k = 0; k < 3; k++) {
+        ellipse(k * 3 - 3, 0, 2, 1);
+    }
+} else if (patternType === 1) {
+    // Diamond pattern
+    rotateZ(PI/4);
+    rect(0, 0, 3, 3);
+}</div>
+                    <div class="tech-stack">
+                        <span class="tech-badge mongolian-badge">Cloud Pattern</span>
+                        <span class="tech-badge mongolian-badge">Diamond Pattern</span>
+                        <span class="tech-badge mongolian-badge">Knot Pattern</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-date cultural-phase">Mar 12, 2025</div>
+                <div class="timeline-content cultural-phase">
+                    <h3>🐎 Traditional Symbol System</h3>
+                    <p>Deep integration of traditional Mongolian symbols: eternal knots, lotus patterns, horse patterns, endless knot patterns.</p>
+                    <div class="code-snippet">// Eternal knot pattern
+beginShape();
+for (let angle = 0; angle < TWO_PI * 2; angle += 0.2) {
+    let x = 3 * cos(angle) + 1.5 * cos(angle * 3);
+    let y = 3 * sin(angle) + 1.5 * sin(angle * 3);
+    vertex(x, y);
+}
+endShape();</div>
+                    <div class="tech-stack">
+                        <span class="tech-badge mongolian-badge">Eternal Knot</span>
+                        <span class="tech-badge mongolian-badge">Yurt Pattern</span>
+                        <span class="tech-badge mongolian-badge">Horse Pattern</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-date cultural-phase">Mar 18, 2025</div>
+                <div class="timeline-content cultural-phase">
+                    <h3>🙏 Hada Prayer Scarf System</h3>
+                    <p>Added fluttering Hada prayer scarves on the wooden bridge, enhancing the Mongolian cultural atmosphere.</p>
+                    <div class="code-snippet">// Hada fluttering animation
+let flutter = sin(frameCount * 0.05 + hadaIndex * 0.3) * 8;
+let sway = cos(frameCount * 0.03 + hadaIndex * 0.2) * 5;
+rotateZ(radians(flutter));
+translate(sway, 0, 0);</div>
+                    <div class="achievement">
+                        Successfully merged traditional culture with modern technology, creating unique visual experience
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-date completion-phase">Apr 30, 2025</div>
+                <div class="timeline-content completion-phase">
+                    <h3>🏆 Project Completion</h3>
+                    <p>Main development of the Mongolian Grassland Terrain Generator completed, all cultural decorations and interaction systems debugged.</p>
+                    <div class="achievement">
+                        🎉 Project main body completed! Mongolian cultural 3D terrain system with Arduino sensor integration officially finished
+                    </div>
+                    <div class="tech-stack">
+                        <span class="tech-badge">Complete Features</span>
+                        <span class="tech-badge arduino-badge">Arduino Integration</span>
+                        <span class="tech-badge mongolian-badge">Cultural Integrity</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-date">May 22, 2025</div>
+                <div class="timeline-content milestone">
+                    <h3>🔄 Interaction Method Reconstruction</h3>
+                    <p>Removed Arduino hardware dependency, changed soil moisture sensor interaction to P and L key triggers.</p>
+                    <div class="code-snippet">// Changed from Arduino sensor to keyboard interaction
+// Before: if (moistureLevel < 30) startEmergencyMode();
+// Now: 
+} else if (key === 'p' || key === 'P') {
+    emergency.active = true;
+} else if (key === 'l' || key === 'L') {
+    fountainChallenge.active = true;
+}</div>
+                    <p><strong>Change Reason:</strong> Computer water damage caused data and sensor failure, requiring switch to keyboard interaction.</p>
+                    <div class="tech-stack">
+                        <span class="tech-badge">Keyboard Interaction</span>
+                        <span class="tech-badge">No Hardware Dependency</span>
+                        <span class="tech-badge">Easy Deployment</span>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+        <div class="mongolian-pattern"></div>
+
+        <div class="header" style="margin-top: 50px;">
+            <h3>🎯 Technical Achievement Summary</h3>
+            <div style="text-align: left; margin-top: 20px;">
+                <p>✅ <strong>Innovative Interaction Design:</strong> Smooth transition from Arduino physical sensors to keyboard interaction</p>
+                <p>✅ <strong>Cultural Integration:</strong> Deep integration of traditional Mongolian decorative arts with modern 3D technology</p>
+                <p>✅ <strong>Complex Systems:</strong> Animal AI, physics simulation, particle systems, collision detection</p>
+                <p>✅ <strong>Visual Effects:</strong> Dynamic terrain, cultural patterns, lighting systems, animation effects</p>
+                <p>✅ <strong>User Experience:</strong> Intuitive interaction design and rich visual feedback</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 添加一些动态效果
+        document.addEventListener('DOMContentLoaded', function() {
+            const timelineItems = document.querySelectorAll('.timeline-item');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.animation = 'fadeInUp 1s forwards';
+                    }
+                });
+            });
+
+            timelineItems.forEach(item => {
+                observer.observe(item);
+            });
+        });
+    </script>
+</body>
+</html> 
